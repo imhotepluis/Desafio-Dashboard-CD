@@ -5,7 +5,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from pyspark.sql import SparkSession
-from pandasql import sqldf
+
 
 """
 # Dashboard Fifa Players
@@ -47,14 +47,25 @@ Vemos que há uma grande quantidade de jogadores que tem 22 anos, enquanto há u
 Agora vamos analisar as posições distribuidas por jogadores jogadores
 """
 
+posicoes = data['positions']
 
-posicao = data["positions"].str.split(",", expand=True)
-contagem_por_dado = posicao.explode(0).value_counts()
-contagem_total = contagem_por_dado.groupby(0).sum()
-print(contagem_total)
+def separar_agrupar(coluna):
+  # Dividir cada string por vírgula em uma lista
+  dados_separados = coluna.str.split(',').explode()
 
+  # Agrupar contagens por valor
+  contagens_agrupadas = dados_separados.value_counts().reset_index(name='Contagem')
 
+  # Renomear colunas
+  contagens_agrupadas.columns = ['Posição', 'Contagem']
 
-#posicoes_jogador = data["posicoes_lista"].value_counts()
+  return contagens_agrupadas
+
+posicoes_jogador = separar_agrupar(posicoes)
+
+st.write('Distribuição de posições por jogador:')
+st.bar_chart(data=posicoes_jogador, x='Posição', y='Contagem', color="#00aaff")
+
+#posicoes_jogador = data["positions"].value_counts()
 
 #st.bar_chart(data=posicoes_jogador, x=None, color="#00aaff")
